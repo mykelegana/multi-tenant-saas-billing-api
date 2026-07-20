@@ -11,9 +11,12 @@ services:
       - POSTGRES_HOST=db
       - REDIS_HOST=redis
     depends_on:
-      - db
-      - redis
-  
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "3000:3000"
 
   db:
     image: postgres:16-alpine
@@ -22,22 +25,22 @@ services:
     env_file:
       - ./backend/.env
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [pg_isready -U postgres -d multi-tenant-saas-api-postgres]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d multi-tenant-saas-api-postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-    
+
   redis:
     image: redis:7-alpine
     container_name: multi-tenant-saas-api-redis
     restart: unless-stopped
     ports:
-      - 6379:6379
-    
+      - "6379:6379"
+
   pgadmin:
     profiles:
       - admin
@@ -48,8 +51,8 @@ services:
     ports:
       - "${PGADMIN_PORT:-5050}:80"
     depends_on:
-    db:
-      condition: service_healthy
+      db:
+        condition: service_healthy
 
 volumes:
-  postgres_data
+  postgres_data:
