@@ -1,34 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { HealthService } from './health.service';
-import { CreateHealthDto } from './dto/create-health.dto';
-import { UpdateHealthDto } from './dto/update-health.dto';
+import { Controller, Get } from '@nestjs/common';
+import { HealthCheck, HealthCheckService, PrismaHealthIndicator } from '@nestjs/terminus';
+import { DatabaseService } from 'src/database/database.service';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly healthService: HealthService) {}
+  constructor(
+    private health: HealthCheckService,
+    private db: PrismaHealthIndicator,
+    private prisma: DatabaseService
+  ) { }
 
-  @Post()
-  create(@Body() createHealthDto: CreateHealthDto) {
-    return this.healthService.create(createHealthDto);
+  @Get('database')
+  @HealthCheck()
+  checkDb() {
+    return this.health.check([
+      () => this.db.pingCheck('database', this.prisma),
+    ]);
   }
 
-  @Get()
-  findAll() {
-    return this.healthService.findAll();
+  @Get('redis')
+  @HealthCheck()
+  checkRedis() {
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.healthService.findOne(+id);
+  @Get('stripe')
+  @HealthCheck()
+  checkStripe() {
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHealthDto: UpdateHealthDto) {
-    return this.healthService.update(+id, updateHealthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.healthService.remove(+id);
+  @Get('queue')
+  @HealthCheck()
+  checkQueue() {
   }
 }
