@@ -10,6 +10,7 @@ async function bootstrap() {
     .setTitle('Multi-Tenant-Saas-Billing API')
     .setDescription("This is the documentation of Multi-Tenant-Saas-Billing's API")
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
