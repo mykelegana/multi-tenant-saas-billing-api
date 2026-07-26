@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    // POST /register
     @Post('register')
     async register(@Body() authRegisterDto: AuthRegisterDto) {
         return this.authService.register(authRegisterDto);

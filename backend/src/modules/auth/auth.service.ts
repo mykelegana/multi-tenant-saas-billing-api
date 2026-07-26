@@ -7,6 +7,7 @@ import { DatabaseService } from 'src/database/database.service';
 export class AuthService {
     constructor(private readonly databaseService: DatabaseService) { }
 
+    // /register endpoint service
     async register(authRegisterDto: AuthRegisterDto) {
         const hashedPass = await bcrypt.hash(authRegisterDto.password, 10);
         const checkEmail = await this.databaseService.user.findFirst({
