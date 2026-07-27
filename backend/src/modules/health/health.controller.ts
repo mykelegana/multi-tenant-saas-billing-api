@@ -10,6 +10,8 @@ export class HealthController {
     private prisma: DatabaseService
   ) { }
 
+
+  // GET /health/database
   @Get('database')
   @HealthCheck()
   checkDb() {
