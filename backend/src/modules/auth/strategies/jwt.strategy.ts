@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { TokenDenylistService } from "../token-denylist.service";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-    constructor() {
+    constructor(private tokenDenylistService: TokenDenylistService) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
@@ -13,6 +14,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: any) {
-        return { id: payload.id, email: payload.email, name: payload.name };
+        const revoked = await this.tokenDenylistService.isRevoked(payload.jwtId);
+        if (revoked) {
+            throw new UnauthorizedException('Token has been revoked');
+        }
+        return payload;
     }
 }

@@ -3,10 +3,11 @@ import { AuthRegisterDto } from './dto/auth-reg.dto';
 import { AuthService } from './auth.service';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TokenDenylistService } from './token-denylist.service';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(private authService: AuthService, private tokenDenylistService: TokenDenylistService) { }
 
     // POST /auth/register
     @Post('register')
@@ -24,9 +25,15 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(@Req() req) {
-        return req.logout()
+        const { jwtId, exp } = req.user; // pull from decoded JWT payload
+        const ttl = exp - Math.floor(Date.now() / 1000);
+        if (ttl > 0) {
+            await this.tokenDenylistService.revoke(jwtId, ttl);
+        }
+        return { message: 'Logged out successfully' };
     }
 
+    // GET /auth/token-info
     @UseGuards(JwtAuthGuard)
     @Get('token-info')
     async info(@Req() req) {

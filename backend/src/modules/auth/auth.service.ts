@@ -4,11 +4,13 @@ import { AuthRegisterDto } from './dto/auth-reg.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
 
 type loginPayload = {
     id: string,
     email: string,
-    access_token: string
+    access_token: string,
+    jwtId: string
 }
 
 @Injectable()
@@ -53,21 +55,19 @@ export class AuthService {
             throw new UnauthorizedException(`Wrong password. Please enter the correct one for this user.`);
         }
 
+        const jwtId = randomUUID();
         const payload = {
             id: user.id,
             email: user.email,
-            name: user.name
+            name: user.name,
+            jwtId: jwtId
         }
 
         return {
             id: user.id,
             email: user.email,
+            jwtId: jwtId,
             access_token: this.jwtService.sign(payload)
         };
-    }
-
-    // /logout endpoint service
-    async logout() {
-
     }
 }
