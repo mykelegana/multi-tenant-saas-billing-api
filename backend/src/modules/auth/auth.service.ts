@@ -67,5 +67,7 @@ export class AuthService {
     }
 
     // /logout endpoint service
+    async logout() {
 
+    }
 }
