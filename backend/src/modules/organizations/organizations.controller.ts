@@ -2,19 +2,21 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { UserOrgDto } from './dto/user-org.dto';
 
 @Controller('organizations')
 export class OrganizationsController {
-  constructor(private readonly organizationsService: OrganizationsService) {}
+  constructor(private readonly organizationsService: OrganizationsService) { }
 
   @Post()
   create(@Body() createOrganizationDto: CreateOrganizationDto) {
     return this.organizationsService.create(createOrganizationDto);
   }
 
+  // GET /organizations
   @Get()
-  findAll() {
-    return this.organizationsService.findAll();
+  userOrg(@Body() userOrgDto: UserOrgDto) {
+    return this.organizationsService.userOrg();
   }
 
   @Get(':id')
