@@ -1,27 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { UserOrgDto } from './dto/user-org.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('organizations')
+@UseGuards(JwtAuthGuard)
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) { }
 
   @Post()
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationsService.create(createOrganizationDto);
+  async create(@Req() req, @Body() createOrganizationDto: CreateOrganizationDto) {
+    return this.organizationsService.create(req.user.id, createOrganizationDto);
   }
 
-  // GET /organizations
-  @Get()
-  userOrg(@Body() userOrgDto: UserOrgDto) {
-    return this.organizationsService.userOrg();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.organizationsService.findOne(+id);
+  @Get('user-orgs')
+  async findUserOrgs(@Req() req) {
+    return this.organizationsService.findUserOrgs(req.user.id);
   }
 
   @Patch(':id')

@@ -1,27 +1,62 @@
-import { Injectable } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { Role } from '@prisma/client';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
 
 @Injectable()
 export class OrganizationsService {
   constructor(private readonly databaseService: DatabaseService) { }
-  create(createOrganizationDto: CreateOrganizationDto) {
-    return 'This action adds a new organization';
+
+  async create(userId: string, createOrganizationDto: CreateOrganizationDto) {
+    const findSlug = await this.databaseService.organization.findFirst({
+      where: { slug: createOrganizationDto.slug }
+    });
+    if (findSlug) {
+      throw new ConflictException(`The organization slug ${createOrganizationDto.slug} is already taken.`)
+    }
+
+    const organization = await this.databaseService.$transaction(async (tx) => {
+      const newOrg = await tx.organization.create({
+        data: {
+          name: createOrganizationDto.name,
+          slug: createOrganizationDto.slug
+        }
+      });
+      const ownerMembership = await tx.membership.create({
+        data: {
+          userId: userId,
+          organizationId: newOrg.id,
+          role: Role.OWNER
+        }
+      });
+      return { newOrg, ownerMembership };
+    });
+    return { organization: organization.newOrg, membership: organization.ownerMembership };
   }
 
-  async userOrg(email: string) {
-    const user = await this.databaseService.user.findFirst({
+  async findUserOrgs(userId: string) {
+    const userOrgs = await this.databaseService.organization.findMany({
       where: {
-        email: email
-      }
+        memberships: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        memberships: {
+          where: {
+            userId: userId,
+          },
+          select: {
+            role: true,
+          },
+        },
+      },
     });
 
-    return user.org;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} organization`;
+    return userOrgs;
   }
 
   update(id: number, updateOrganizationDto: UpdateOrganizationDto) {
