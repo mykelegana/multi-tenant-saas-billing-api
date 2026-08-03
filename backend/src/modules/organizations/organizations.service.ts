@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { Role } from '@prisma/client';
@@ -8,6 +8,7 @@ import { CreateOrganizationDto } from './dto/create-organization.dto';
 export class OrganizationsService {
   constructor(private readonly databaseService: DatabaseService) { }
 
+  // POST /organizations endpoint service
   async create(userId: string, createOrganizationDto: CreateOrganizationDto) {
     const findSlug = await this.databaseService.organization.findFirst({
       where: { slug: createOrganizationDto.slug }
@@ -35,7 +36,8 @@ export class OrganizationsService {
     return { organization: organization.newOrg, membership: organization.ownerMembership };
   }
 
-  async findUserOrgs(userId: string) {
+  // GET /organizations endpoint service
+  async findAllOrgs(userId: string) {
     const userOrgs = await this.databaseService.organization.findMany({
       where: {
         memberships: {
@@ -59,11 +61,81 @@ export class OrganizationsService {
     return userOrgs;
   }
 
-  update(id: number, updateOrganizationDto: UpdateOrganizationDto) {
-    return `This action updates a #${id} organization`;
+  // GET /organizations/:id endpoint service
+  async findOneOrg(userId: string, orgId: string) {
+    const findOrg = await this.databaseService.organization.findFirst({
+      where: {
+        id: orgId,
+        memberships: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        memberships: {
+          where: {
+            userId: userId,
+          },
+          select: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!findOrg) {
+      throw new NotFoundException(`Organization with id ${orgId} not found.`);
+    }
+
+    return findOrg;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} organization`;
+  // PATCH /organizations/:id endpoint service
+  async update(userId: string, orgId: string, updateOrganizationDto: UpdateOrganizationDto) {
+    const findOrg = await this.findOneOrg(userId, orgId);
+
+    if (!findOrg) {
+      throw new NotFoundException(`Organization with id ${orgId} not found.`);
+    }
+
+    if (updateOrganizationDto.slug) {
+      const existingSlug = await this.databaseService.organization.findUnique({
+        where: {
+          slug: updateOrganizationDto.slug
+        }
+      });
+
+      if (existingSlug && existingSlug.id !== orgId) {
+        throw new ConflictException(`Organization with slug '${updateOrganizationDto.slug}' already exists.`);
+      }
+    }
+
+    const updated = await this.databaseService.organization.update({
+      where: {
+        id: orgId
+      },
+      data: {
+        ...updateOrganizationDto
+      }
+    });
+
+    return updated;
+  }
+
+  async remove(userId: string, orgId: string) {
+    const findOrg = await this.findOneOrg(userId, orgId);
+
+    if (!findOrg) {
+      throw new NotFoundException(`Organization with id ${orgId} not found.`);
+    };
+
+    const deleteOrg = await this.databaseService.organization.delete({
+      where: {
+        id: orgId
+      }
+    });
+
+    return deleteOrg;
   }
 }

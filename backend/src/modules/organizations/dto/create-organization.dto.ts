@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, MaxLength } from "class-validator";
+import { IsString, MaxLength, IsNotEmpty } from "class-validator";
 
 
 export class CreateOrganizationDto {
@@ -7,10 +7,12 @@ export class CreateOrganizationDto {
     @IsString()
     @MaxLength(100, { message: 'Organization name cannot exceed 100 characters.' })
     @ApiProperty()
-    name: string;
+    @IsNotEmpty()
+    name!: string;
 
     @IsString()
     @MaxLength(100, { message: 'Organization slug cannot exceed 72 characters.' })
     @ApiProperty()
-    slug: string;
+    @IsNotEmpty()
+    slug!: string;
 }

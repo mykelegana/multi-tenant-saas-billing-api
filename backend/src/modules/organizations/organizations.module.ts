@@ -6,6 +6,7 @@ import { DatabaseModule } from 'src/database/database.module';
 @Module({
   controllers: [OrganizationsController],
   providers: [OrganizationsService],
-  imports: [DatabaseModule]
+  imports: [DatabaseModule],
+  exports: [OrganizationsService]
 })
 export class OrganizationsModule { }
