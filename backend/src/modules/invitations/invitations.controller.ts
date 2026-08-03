@@ -1,36 +1,44 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
-import { UpdateInvitationDto } from './dto/update-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('organizations')
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) { }
 
-  @UseGuards(JwtAuthGuard)
-  @Post(':id/invite')
+  //--- only OWNER or ADMIN permitted endpoints -----------------------------------
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Post(':id/invitations')
   invite(@Req() req, @Param('id') orgId: string, @Body() createInvitationDto: CreateInvitationDto) {
     return this.invitationsService.invite(req.user.id, orgId, createInvitationDto);
   }
 
-  @Get()
-  findAll() {
-    return this.invitationsService.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Get(':id/invitations')
+  findAll(@Req() req, @Param('id') orgId: string) {
+    return this.invitationsService.findAll(req.user.id, orgId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.invitationsService.findOne(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Delete(':id/invitations/:invitationId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Req() req, @Param('id') orgId: string, @Param('invitationId') invitationId: string) {
+    return this.invitationsService.remove(req.user.id, orgId, invitationId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInvitationDto: UpdateInvitationDto) {
-    return this.invitationsService.update(+id, updateInvitationDto);
-  }
+  //--- any authenticated user ------------------------------------------------------
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.invitationsService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Post('invitations/:token/accept')
+  acceptInvite(@Req() req, @Param('token') token: string) {
+    return this.invitationsService.acceptInvite(req.user.id, req.user.email, token);
   }
 }
