@@ -10,9 +10,10 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
 import { HealthModule } from './modules/health/health.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
+import { MembershipsModule } from './modules/memberships/memberships.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, ConfigModule.forRoot({ isGlobal: true })],
   controllers: [AppController],
   providers: [AppService, DatabaseService]
 })
