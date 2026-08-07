@@ -1,7 +1,37 @@
-import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 
 @Injectable()
 export class StripeService {
-    constructor(@Inject('STRIPE_CLIENT') stripe: Stripe) { }
+    constructor(@Inject('STRIPE_CLIENT') private readonly stripe: Stripe) { }
+
+    async createCheckoutSession(params: {
+        priceId: string;
+        customerId?: string;
+        customerEmail?: string;
+        successUrl: string;
+        cancelUrl: string;
+        metadata?: Record<string, string>;
+    }): Promise<{ url: string }> {
+        const session = await this.stripe.checkout.sessions.create({
+            mode: 'subscription',
+            line_items: [
+                {
+                    price: params.priceId,
+                    quantity: 1,
+                },
+            ],
+            customer: params.customerId,
+            customer_email: params.customerId ? undefined : params.customerEmail,
+            success_url: params.successUrl,
+            cancel_url: params.cancelUrl,
+            metadata: params.metadata,
+        });
+
+        if (!session.url) {
+            throw new Error('Stripe did not return a checkout session URL.');
+        }
+
+        return { url: session.url };
+    }
 }
