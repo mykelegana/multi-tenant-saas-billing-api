@@ -12,21 +12,25 @@ import { Role } from '@prisma/client';
 export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) { }
 
+  // POST /organizations/:orgId/checkout
   @Post(':orgId/checkout')
   checkout(@Req() req, @Param('orgId') orgId: string) {
     return this.subscriptionsService.checkoutPage(req.user.id, req.user.email, orgId);
   }
 
+  // POST /organizations/:orgId/subscription/upgrade
   @Post(':orgId/subscription/upgrade')
   upgrade(@Req() req, @Param('orgId') orgId: string) {
     return this.subscriptionsService.subscriptionUpgrade(req.user.id, orgId);
   }
 
+  // GET /organizations/:orgId/subscription
   @Get(':orgId/subscription')
   subscription(@Req() req, @Param('orgId') orgId: string) {
     return this.subscriptionsService.subscription(req.user.id, orgId);
   }
 
+  // DELETE /organizations/:orgId/subscription
   @Delete(':orgId/subscription')
   remove(@Req() req, @Param('orgId') orgId: string) {
     return this.subscriptionsService.subscriptionRemove(req.user.id, orgId);

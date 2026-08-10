@@ -12,12 +12,18 @@ export class SubscriptionsService {
     private readonly organizationsService: OrganizationsService,
   ) { }
 
-  async checkoutPage(userId: string, userEmail: string, orgId: string) {
+  // Organization belongingness of the user, helper ----------------------
+  private async findOrgHelper(userId: string, orgId: string) {
     try {
       await this.organizationsService.findOneOrg(userId, orgId);
     } catch (error) {
       throw new UnauthorizedException(`You do not belong to the organization with id '${orgId}'`);
     }
+  }
+
+  // POST /organizations/:orgId/checkout endpoint service
+  async checkoutPage(userId: string, userEmail: string, orgId: string) {
+    await this.findOrgHelper(userId, orgId);
 
     const org = await this.databaseService.organization.findUnique({
       where: { id: orgId },
@@ -25,7 +31,7 @@ export class SubscriptionsService {
     });
 
     if (!org) {
-      throw new UnauthorizedException(`Organization '${orgId}' not found.`);
+      throw new UnauthorizedException(`Organization '${orgId}' not foundd.`);
     }
 
     return this.stripeService.createCheckoutSession({
@@ -40,14 +46,17 @@ export class SubscriptionsService {
     });
   }
 
+  // POST /organizations/:orgId/subscription/upgrade endpoint service
   async subscription(userId: string, orgId: string) {
 
   }
 
+  // GET /organizations/:orgId/subscription endpoint service
   async subscriptionUpgrade(userId: string, orgId: string) {
 
   }
 
+  // DELETE /organizations/:orgId/subscription endpoint service
   async subscriptionRemove(userId: string, orgId: string) {
 
   }
