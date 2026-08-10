@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 
 @Injectable()
@@ -33,5 +33,27 @@ export class StripeService {
         }
 
         return { url: session.url };
+    }
+
+    async constructEvent(params: {
+        rawBody: string;
+        signature: string;
+        endpointSecret: string;
+    }): Promise<Stripe.Event> {
+        let event: Stripe.Event;
+        try {
+            event = this.stripe.webhooks.constructEvent(
+                params.rawBody,
+                params.signature,
+                params.endpointSecret,
+            );
+            return event;
+        } catch (error) {
+            throw new BadRequestException(`Webhook signature verification failed.`);
+        }
+    }
+
+    async retrieveSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+        return this.stripe.subscriptions.retrieve(subscriptionId);
     }
 }
