@@ -14,19 +14,19 @@ export class OrganizationsController {
 
   // POST /organizations
   @Post()
-  async create(@Req() req, @Body() createOrganizationDto: CreateOrganizationDto) {
+  create(@Req() req, @Body() createOrganizationDto: CreateOrganizationDto) {
     return this.organizationsService.create(req.user.id, createOrganizationDto);
   }
 
   // GET /organizations
   @Get()
-  async findAllOrgs(@Req() req) {
+  findAllOrgs(@Req() req) {
     return this.organizationsService.findAllOrgs(req.user.id);
   }
 
   // GET /organizations/:id
   @Get(':id')
-  async findOneOrg(@Req() req, @Param('id') orgId: string) {
+  findOneOrg(@Req() req, @Param('id') orgId: string) {
     return this.organizationsService.findOneOrg(req.user.id, orgId);
   }
 
