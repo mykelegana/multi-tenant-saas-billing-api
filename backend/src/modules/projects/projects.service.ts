@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { DatabaseService } from 'src/database/database.service';
@@ -48,8 +48,21 @@ export class ProjectsService {
     return allProject;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
+  async findOne(userId: string, orgId: string, projId: string) {
+    await this.assertMembership(userId, orgId);
+
+    const findProject = await this.databaseService.project.findFirst({
+      where: {
+        id: projId,
+        organizationId: orgId
+      }
+    });
+
+    if (!findProject) {
+      throw new NotFoundException(`Project with id ${projId} is not found.`)
+    }
+
+    return findProject;
   }
 
   update(id: number, updateProjectDto: UpdateProjectDto) {

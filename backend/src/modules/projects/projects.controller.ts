@@ -24,9 +24,10 @@ export class ProjectsController {
     return this.projectsService.findAll(req.user.id, orgId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(+id);
+  @Get(':orgId/:projId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  findOne(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {
+    return this.projectsService.findOne(req.user.id, orgId, projId);
   }
 
   @Patch(':id')
