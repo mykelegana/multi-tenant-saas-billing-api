@@ -18,9 +18,10 @@ export class ProjectsController {
     return this.projectsService.createProj(createProjectDto, req.user.id, orgId);
   }
 
-  @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  @Get(':orgId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  findAll(@Req() req, @Param('orgId') orgId: string) {
+    return this.projectsService.findAll(req.user.id, orgId);
   }
 
   @Get(':id')

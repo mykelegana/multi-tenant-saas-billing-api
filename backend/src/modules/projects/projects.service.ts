@@ -36,8 +36,14 @@ export class ProjectsService {
     return newProj;
   }
 
-  findAll() {
-    return `This action returns all projects`;
+  async findAll(userId: string, orgId: string) {
+    const allProject = await this.databaseService.project.findMany({
+      where: {
+        organizationId: orgId
+      }
+    });
+
+    return allProject;
   }
 
   findOne(id: number) {
