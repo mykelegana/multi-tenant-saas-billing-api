@@ -1,25 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(private readonly projectsService: ProjectsService) { }
 
-  @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
+  @Post(':orgId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  create(@Req() req, @Param('orgId') orgId: string, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.createProj(createProjectDto, req.user.id, orgId);
   }
 
-  @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  @Get(':orgId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  findAll(@Req() req, @Param('orgId') orgId: string) {
+    return this.projectsService.findAll(req.user.id, orgId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(+id);
+  @Get(':orgId/:projId')
+  @Roles(Role.OWNER, Role.ADMIN)
+  findOne(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {
+    return this.projectsService.findOne(req.user.id, orgId, projId);
   }
 
   @Patch(':id')
