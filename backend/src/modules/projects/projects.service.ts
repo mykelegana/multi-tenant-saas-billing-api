@@ -37,6 +37,8 @@ export class ProjectsService {
   }
 
   async findAll(userId: string, orgId: string) {
+    await this.assertMembership(userId, orgId);
+
     const allProject = await this.databaseService.project.findMany({
       where: {
         organizationId: orgId
