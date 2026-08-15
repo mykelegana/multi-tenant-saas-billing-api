@@ -19,14 +19,14 @@ export class ProjectsController {
     return this.projectsService.createProj(createProjectDto, req.user.id, orgId);
   }
 
-  // GET /:orgId
+  // GET /projects/:orgId
   @Get(':orgId')
   @Roles(Role.OWNER, Role.ADMIN)
   findAll(@Req() req, @Param('orgId') orgId: string) {
     return this.projectsService.findAll(req.user.id, orgId);
   }
 
-  // GET /:orgId/:projId
+  // GET /projects/:orgId/:projId
   @Get(':orgId/:projId')
   @Roles(Role.OWNER, Role.ADMIN)
   findOne(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {

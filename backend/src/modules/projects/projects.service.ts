@@ -38,7 +38,7 @@ export class ProjectsService {
     return newProj;
   }
 
-  // GET /:orgId endpoint service
+  // GET /projects/:orgId endpoint service
   async findAll(userId: string, orgId: string) {
     await this.assertMembership(userId, orgId);
 
@@ -51,7 +51,7 @@ export class ProjectsService {
     return allProject;
   }
 
-  // GET /:orgId/:projId endpoint service
+  // GET /projects/:orgId/:projId endpoint service
   async findOne(userId: string, orgId: string, projId: string) {
     await this.assertMembership(userId, orgId);
 
