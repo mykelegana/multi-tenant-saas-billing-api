@@ -9,6 +9,7 @@ import { OrganizationsService } from '../organizations/organizations.service';
 export class ProjectsService {
   constructor(private readonly databaseService: DatabaseService, private readonly usageService: UsageService, private organizationsService: OrganizationsService) { }
 
+  // Membership of user in organization helper ---------------------------------------------------
   private async assertMembership(userId: string, orgId: string) {
     try {
       await this.organizationsService.findOneOrg(userId, orgId);
@@ -17,6 +18,7 @@ export class ProjectsService {
     }
   }
 
+  // POST /projects/:orgId endpoint service
   async createProj(createProjectDto: CreateProjectDto, userId: string, orgId: string) {
     await this.assertMembership(userId, orgId);
 
@@ -36,6 +38,7 @@ export class ProjectsService {
     return newProj;
   }
 
+  // GET /:orgId endpoint service
   async findAll(userId: string, orgId: string) {
     await this.assertMembership(userId, orgId);
 
@@ -48,6 +51,7 @@ export class ProjectsService {
     return allProject;
   }
 
+  // GET /:orgId/:projId endpoint service
   async findOne(userId: string, orgId: string, projId: string) {
     await this.assertMembership(userId, orgId);
 

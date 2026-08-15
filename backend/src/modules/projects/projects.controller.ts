@@ -12,18 +12,21 @@ import { Role } from '@prisma/client';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) { }
 
+  // POST /projects/:orgId
   @Post(':orgId')
   @Roles(Role.OWNER, Role.ADMIN)
   create(@Req() req, @Param('orgId') orgId: string, @Body() createProjectDto: CreateProjectDto) {
     return this.projectsService.createProj(createProjectDto, req.user.id, orgId);
   }
 
+  // GET /:orgId
   @Get(':orgId')
   @Roles(Role.OWNER, Role.ADMIN)
   findAll(@Req() req, @Param('orgId') orgId: string) {
     return this.projectsService.findAll(req.user.id, orgId);
   }
 
+  // GET /:orgId/:projId
   @Get(':orgId/:projId')
   @Roles(Role.OWNER, Role.ADMIN)
   findOne(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {
