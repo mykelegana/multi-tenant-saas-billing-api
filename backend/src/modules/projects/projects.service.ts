@@ -69,11 +69,11 @@ export class ProjectsService {
     return findProject;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
+  async update(id: number, updateProjectDto: UpdateProjectDto) {
     return `This action updates a #${id} project`;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return `This action removes a #${id} project`;
   }
 }
