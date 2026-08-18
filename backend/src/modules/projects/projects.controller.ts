@@ -33,11 +33,13 @@ export class ProjectsController {
     return this.projectsService.findOne(req.user.id, orgId, projId);
   }
 
+  // PATCH /projects/:orgId/:projId
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(+id, updateProjectDto);
   }
 
+  // DELETE /projects/:orgId/:projId
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.projectsService.remove(+id);
