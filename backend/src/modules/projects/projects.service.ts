@@ -69,11 +69,34 @@ export class ProjectsService {
     return findProject;
   }
 
-  async update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+  async updateProj(updateProjectDto: UpdateProjectDto, userId: string, orgId: string, projId: string) {
+    await this.assertMembership(userId, orgId);
+
+    await this.findOne(userId, orgId, projId);
+
+    const patchProj = await this.databaseService.project.update({
+      where: {
+        id: projId
+      },
+      data: {
+        ...updateProjectDto
+      }
+    });
+
+    return patchProj;
   }
 
-  async remove(id: number) {
-    return `This action removes a #${id} project`;
+  async remove(userId: string, orgId: string, projId: string) {
+    await this.assertMembership(userId, orgId);
+
+    await this.findOne(userId, orgId, projId);
+
+    const delProj = await this.databaseService.project.delete({
+      where: {
+        id: projId
+      }
+    });
+
+    return delProj;
   }
 }
