@@ -12,6 +12,7 @@ export class InvitationsController {
 
   //--- only OWNER or ADMIN permitted endpoints -----------------------------------
 
+  // POST /organizations/:id/invitations
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OWNER, Role.ADMIN)
   @Post(':id/invitations')
@@ -19,6 +20,7 @@ export class InvitationsController {
     return this.invitationsService.invite(req.user.id, orgId, createInvitationDto);
   }
 
+  // GET /organizations/:id/invitations
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OWNER, Role.ADMIN)
   @Get(':id/invitations')
@@ -26,6 +28,7 @@ export class InvitationsController {
     return this.invitationsService.findAll(req.user.id, orgId);
   }
 
+  // DELETE /organizations/:id/invitations/:invitationId
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OWNER, Role.ADMIN)
   @Delete(':id/invitations/:invitationId')
@@ -36,6 +39,8 @@ export class InvitationsController {
 
   //--- any authenticated user ------------------------------------------------------
 
+
+  // POST /organizations/invitations/:token/accept
   @UseGuards(JwtAuthGuard)
   @Post('invitations/:token/accept')
   acceptInvite(@Req() req, @Param('token') token: string) {

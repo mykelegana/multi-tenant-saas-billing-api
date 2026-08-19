@@ -9,34 +9,37 @@ import { Role } from '@prisma/client';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.OWNER, Role.ADMIN)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) { }
 
+  // POST /projects/:orgId
   @Post(':orgId')
-  @Roles(Role.OWNER, Role.ADMIN)
   create(@Req() req, @Param('orgId') orgId: string, @Body() createProjectDto: CreateProjectDto) {
     return this.projectsService.createProj(createProjectDto, req.user.id, orgId);
   }
 
+  // GET /projects/:orgId
   @Get(':orgId')
-  @Roles(Role.OWNER, Role.ADMIN)
   findAll(@Req() req, @Param('orgId') orgId: string) {
     return this.projectsService.findAll(req.user.id, orgId);
   }
 
+  // GET /projects/:orgId/:projId
   @Get(':orgId/:projId')
-  @Roles(Role.OWNER, Role.ADMIN)
   findOne(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {
     return this.projectsService.findOne(req.user.id, orgId, projId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+  // PATCH /projects/:orgId/:projId
+  @Patch(':orgId/:projId')
+  update(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string, @Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectsService.updateProj(updateProjectDto, req.user.id, orgId, projId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
+  // DELETE /projects/:orgId/:projId
+  @Delete(':orgId/:projId')
+  remove(@Req() req, @Param('orgId') orgId: string, @Param('projId') projId: string) {
+    return this.projectsService.remove(req.user.id, orgId, projId);
   }
 }
