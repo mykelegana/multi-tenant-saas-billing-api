@@ -1,17 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException, RequestTimeoutException, } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { UsageMetric } from "@prisma/client";
-
-const PLAN_LIMITS = {
-    FREE: {
-        API_REQUESTS: 1000,
-        PROJECTS_CREATED: 5,
-    },
-    PRO: {
-        API_REQUESTS: 10000,
-        PROJECTS_CREATED: 50,
-    },
-} as const;
+import { PLAN_LIMITS } from "src/common/constants/plan-limits";
 
 
 @Injectable()
