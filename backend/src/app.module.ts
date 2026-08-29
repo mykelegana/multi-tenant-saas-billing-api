@@ -18,7 +18,8 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule, ConfigModule.forRoot({ isGlobal: true }),
+  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST ?? 'redis',
