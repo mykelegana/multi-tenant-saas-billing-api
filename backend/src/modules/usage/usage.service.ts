@@ -65,4 +65,28 @@ export class UsageService {
             remaining: limit - currentUsage,
         };
     }
+
+    async resetUsage(organizationId: string, metric: UsageMetric) {
+        const usage = await this.getUsage(organizationId, metric);          // checks if the the organization have used any of the metrics (API REQ, PROJECTS CREATED)
+
+        if (!usage) {
+            throw new NotFoundException(`Usage record not found.`);
+        }
+
+        const newPeriodStart = usage.periodEnd;                             // sets up the new period of usage at the end of the last usage
+        const newPeriodEnd = new Date(newPeriodStart);
+        newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1);                 // sets up the end of the new period of usage + 1 month of the period start
+
+        return this.databaseService.usageRecord.create({                    // creates the new usage record
+            data: {
+                organizationId,
+                metric,
+                count: 0,
+                periodStart: newPeriodStart,
+                periodEnd: newPeriodEnd
+            }
+        });
+    }
+
+
 }
