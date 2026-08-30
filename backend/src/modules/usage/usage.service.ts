@@ -8,14 +8,14 @@ import { PLAN_LIMITS } from "src/common/constants/plan-limits";
 export class UsageService {
     constructor(private readonly databaseService: DatabaseService) { }
 
-    async getUsage(organizationId: string, metric: UsageMetric) {
+    async getUsage(organizationId: string, metric: UsageMetric) {                        // gets usage count
         const usage = await this.databaseService.usageRecord.findFirst({
             where: { organizationId, metric }
         });
         return usage;
     }
 
-    async incrementUsage(organizationId: string, metric: UsageMetric) {
+    async incrementUsage(organizationId: string, metric: UsageMetric) {                      // increments usage by 1
         const usage = await this.getUsage(organizationId, metric);
 
         if (!usage) {
@@ -34,7 +34,7 @@ export class UsageService {
         });
     }
 
-    async checkLimit(organizationId: string, metric: UsageMetric) {
+    async checkLimit(organizationId: string, metric: UsageMetric) {                                 // checks usage limit
         const organization = await this.databaseService.organization.findUnique({
             where: {
                 id: organizationId,
