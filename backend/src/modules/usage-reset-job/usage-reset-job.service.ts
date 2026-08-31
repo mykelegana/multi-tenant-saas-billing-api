@@ -25,7 +25,7 @@ export class UsageResetJobService {
             },
         );
 
-        this.logger.log(`Monthly usage reset job ${job.id} has been queued.`);
+        this.logger.log(`Monthly usage reset job ${job.id} has been queued.`);       // log
         return job.id;
     }
 }

@@ -34,7 +34,7 @@ export class UsageResetProcessor extends WorkerHost {
 
             this.logger.log(`Successfully processed ${expiredUsage.length} expired usage records.`,);
         } catch (error) {
-            this.logger.error(`Failed to reset usage`, error);
+            this.logger.error(`Failed to reset usage`, error);            // log
             throw error;
         }
     }
