@@ -1,17 +1,28 @@
-import { ForbiddenException, Injectable, NotFoundException, RequestTimeoutException, } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, Inject, } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { UsageMetric } from "@prisma/client";
 import { PLAN_LIMITS } from "src/common/constants/plan-limits";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 
 
 @Injectable()
 export class UsageService {
-    constructor(private readonly databaseService: DatabaseService) { }
+    constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly databaseService: DatabaseService
+    ) { }
 
     async getUsage(organizationId: string, metric: UsageMetric) {                        // gets usage count
+
+        const cacheKey = `usage:getUsage:${organizationId}:${metric}`;
+        const cached = await this.cacheManager.get('cacheKey');                // checks if there is already waithing cached data in redis
+        if (cached) return cached;                                             // returns if there is
+
         const usage = await this.databaseService.usageRecord.findFirst({
             where: { organizationId, metric }
         });
+
+        await this.cacheManager.set(cacheKey, usage);
         return usage;
     }
 
