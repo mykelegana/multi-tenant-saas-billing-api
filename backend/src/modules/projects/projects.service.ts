@@ -4,7 +4,8 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { UsageService } from '../usage/usage.service';
 import { OrganizationsService } from '../organizations/organizations.service';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache, CacheKey } from '@nestjs/cache-manager';
+import { find } from 'rxjs';
 
 @Injectable()
 export class ProjectsService {
@@ -40,7 +41,7 @@ export class ProjectsService {
     if (newProj) {
       await this.usageService.incrementUsage(orgId, 'PROJECTS_CREATED');
     }
-
+    await this.terminateCache();
     return newProj;
   }
 
@@ -66,6 +67,10 @@ export class ProjectsService {
   async findOne(userId: string, orgId: string, projId: string) {
     await this.assertMembership(userId, orgId);
 
+    const cacheKey = `projects:findOne:${userId}:${orgId}:${projId}`;
+    const cached = await this.cachemanager.get(cacheKey);
+    if (cached) return cached;
+
     const findProject = await this.databaseService.project.findFirst({
       where: {
         id: projId,
@@ -77,6 +82,7 @@ export class ProjectsService {
       throw new NotFoundException(`Project with id ${projId} is not found.`)
     }
 
+    await this.cachemanager.set(cacheKey, findProject);
     return findProject;
   }
 
@@ -93,7 +99,7 @@ export class ProjectsService {
         ...updateProjectDto
       }
     });
-
+    await this.terminateCache();
     return patchProj;
   }
 
@@ -108,6 +114,12 @@ export class ProjectsService {
       }
     });
 
+    await this.terminateCache();
     return delProj;
+  }
+
+  private async terminateCache() {
+    await this.cachemanager.del(`projects:findAll`);
+    await this.cachemanager.del(`projects:findOne`);
   }
 }
