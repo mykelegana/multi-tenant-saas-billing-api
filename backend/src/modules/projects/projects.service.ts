@@ -1,13 +1,19 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { UsageService } from '../usage/usage.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private readonly databaseService: DatabaseService, private readonly usageService: UsageService, private organizationsService: OrganizationsService) { }
+  constructor(
+    @Inject(CACHE_MANAGER) private cachemanager: Cache,
+    private readonly databaseService: DatabaseService,
+    private readonly usageService: UsageService,
+    private organizationsService: OrganizationsService
+  ) { }
 
   // Membership of user in organization helper ---------------------------------------------------
   private async assertMembership(userId: string, orgId: string) {
@@ -42,12 +48,17 @@ export class ProjectsService {
   async findAll(userId: string, orgId: string) {
     await this.assertMembership(userId, orgId);
 
+    const cacheKey = `projects:findAll:${userId}:${orgId}`;
+    const cached = await this.cachemanager.get(cacheKey);
+    if (cached) return cached;
+
     const allProject = await this.databaseService.project.findMany({
       where: {
         organizationId: orgId
       }
     });
 
+    await this.cachemanager.set(cacheKey, allProject);
     return allProject;
   }
 
