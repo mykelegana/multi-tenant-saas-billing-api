@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException, Inject, } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, Inject } from "@nestjs/common";
 import { DatabaseService } from "src/database/database.service";
 import { UsageMetric } from "@prisma/client";
 import { PLAN_LIMITS } from "src/common/constants/plan-limits";
@@ -15,25 +15,34 @@ export class UsageService {
     async getUsage(organizationId: string, metric: UsageMetric) {                        // gets usage count
 
         const cacheKey = `usage:getUsage:${organizationId}:${metric}`;
-        const cached = await this.cacheManager.get('cacheKey');                // checks if there is already waithing cached data in redis
-        if (cached) return cached;                                             // returns if there is
+        const cached = await this.cacheManager.get(cacheKey);                            // checks if there is already cached data in redis
+        if (cached) return cached;                                                       // returns if there is
 
         const usage = await this.databaseService.usageRecord.findFirst({
-            where: { organizationId, metric }
+            where: {
+                organizationId,
+                metric,
+                periodStart: {
+                    lte: new Date(),
+                },
+                periodEnd: {
+                    gt: new Date(),
+                },
+            }
         });
 
         await this.cacheManager.set(cacheKey, usage);
         return usage;
     }
 
-    async incrementUsage(organizationId: string, metric: UsageMetric) {                      // increments usage by 1
+    async incrementUsage(organizationId: string, metric: UsageMetric) {                  // increments usage by 1
         const usage = await this.getUsage(organizationId, metric);
 
         if (!usage) {
             throw new NotFoundException(`No record found.`);
         }
 
-        return this.databaseService.usageRecord.update({
+        const updatedUsage = await this.databaseService.usageRecord.update({
             where: {
                 id: usage.id,
             },
@@ -43,9 +52,13 @@ export class UsageService {
                 }
             }
         });
+
+        await this.cacheManager.del(`usage:getUsage:${organizationId}:${metric}`);       // removes old cached usage
+
+        return updatedUsage;
     }
 
-    async checkLimit(organizationId: string, metric: UsageMetric) {                                 // checks usage limit
+    async checkLimit(organizationId: string, metric: UsageMetric) {                      // checks usage limit
         const organization = await this.databaseService.organization.findUnique({
             where: {
                 id: organizationId,
@@ -77,18 +90,18 @@ export class UsageService {
         };
     }
 
-    async resetUsage(organizationId: string, metric: UsageMetric) {
-        const usage = await this.getUsage(organizationId, metric);          // checks if the the organization have used any of the metrics (API REQ, PROJECTS CREATED)
+    async resetUsage(organizationId: string, metric: UsageMetric) {                     // resets usage and creates a new usage period
+        const usage = await this.getUsage(organizationId, metric);                       // checks if the organization has used any of the metrics (API REQ, PROJECTS CREATED)
 
         if (!usage) {
             throw new NotFoundException(`Usage record not found.`);
         }
 
-        const newPeriodStart = usage.periodEnd;                             // sets up the new period of usage at the end of the last usage
+        const newPeriodStart = usage.periodEnd;                                         // sets up the new period of usage at the end of the last usage
         const newPeriodEnd = new Date(newPeriodStart);
-        newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1);                 // sets up the end of the new period of usage + 1 month of the period start
+        newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1);                             // sets up the end of the new usage period + 1 month of the period start
 
-        return this.databaseService.usageRecord.create({                    // creates the new usage record
+        const newUsage = await this.databaseService.usageRecord.create({                // creates the new usage record
             data: {
                 organizationId,
                 metric,
@@ -97,7 +110,9 @@ export class UsageService {
                 periodEnd: newPeriodEnd
             }
         });
+
+        await this.cacheManager.del(`usage:getUsage:${organizationId}:${metric}`);       // removes old cached usage
+
+        return newUsage;
     }
-
-
 }
