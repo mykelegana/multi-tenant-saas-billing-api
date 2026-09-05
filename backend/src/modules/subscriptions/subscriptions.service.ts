@@ -1,12 +1,13 @@
-// subscriptions.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { StripeService } from '../stripe/stripe.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class SubscriptionsService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly stripeService: StripeService,
     private readonly databaseService: DatabaseService,
     private readonly organizationsService: OrganizationsService,
@@ -46,12 +47,27 @@ export class SubscriptionsService {
     });
   }
 
-  // POST /organizations/:orgId/subscription/upgrade endpoint service
+  // GET /organizations/:orgId/subscription endpoint service
   async subscription(userId: string, orgId: string) {
+    await this.findOrgHelper(userId, orgId);
 
+    const cacheKey = `subscriptions:subscription:${userId}:${orgId}`;
+    const cached = await this.cacheManager.get('cacheKey');                // checks if there is already waithing cached data in redis
+    if (cached) return cached;                                             // returns if there is
+
+    const plan = await this.databaseService.organization.findUnique({
+      where: { id: orgId },
+      select: {
+        plan: true,
+      }
+    });
+
+    await this.cacheManager.set(cacheKey, plan);                           // setting cache for future requests
+
+    return plan;
   }
 
-  // GET /organizations/:orgId/subscription endpoint service
+  // POST /organizations/:orgId/subscription/upgrade endpoint service
   async subscriptionUpgrade(userId: string, orgId: string) {
 
   }

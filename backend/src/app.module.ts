@@ -16,9 +16,12 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { UsageModule } from './modules/usage/usage.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { BullModule } from '@nestjs/bullmq';
+import { CacheModule } from '@nestjs/cache-manager'
+import KeyvRedis from '@keyv/redis';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule, ConfigModule.forRoot({ isGlobal: true }),
+  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST ?? 'redis',
@@ -26,6 +29,15 @@ import { BullModule } from '@nestjs/bullmq';
       },
       defaultJobOptions: { attempts: 3 }
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: () => ({
+        stores: [
+          new KeyvRedis(`redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`),
+        ],
+        ttl: parseInt(process.env.REDIS_TTL!),
+      }),
+    })
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService]

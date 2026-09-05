@@ -6,6 +6,7 @@ import { OrganizationsModule } from '../organizations/organizations.module';
 
 @Module({
   providers: [RateLimitService, RateLimitGuard],
-  imports: [UsageModule, OrganizationsModule]
+  imports: [UsageModule, OrganizationsModule],
+  exports: [RateLimitService]
 })
 export class RateLimitModule { }

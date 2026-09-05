@@ -56,7 +56,7 @@ export class RateLimitService {
             await this.redis.expire(key, 60);
         }
 
-        return {
+        return {           // return rate-limit
             allowed: true,
             currentMinuteRequests: newCount,
             requestsPerMinuteLimit: reqPerMin,
