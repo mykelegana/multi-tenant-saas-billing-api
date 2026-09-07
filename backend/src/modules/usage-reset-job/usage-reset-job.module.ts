@@ -4,6 +4,7 @@ import { UsageResetProcessor } from './processors/usage-reset.processor';
 import { BullModule } from '@nestjs/bullmq';
 import { UsageModule } from '../usage/usage.module';
 import { DatabaseModule } from 'src/database/database.module';
+import { UsageResetJobController } from './usage-reset-job.controller';
 
 @Module({
   imports: [BullModule.registerQueue({
@@ -13,6 +14,7 @@ import { DatabaseModule } from 'src/database/database.module';
     DatabaseModule
   ],
   providers: [UsageResetJobService, UsageResetProcessor],
+  controllers: [UsageResetJobController],
   exports: [UsageResetJobService]
 })
 export class UsageResetJobModule { }
