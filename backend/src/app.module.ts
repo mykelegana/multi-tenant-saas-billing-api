@@ -18,9 +18,11 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager'
 import KeyvRedis from '@keyv/redis';
+import { UsageResetJobModule } from './modules/usage-reset-job/usage-reset-job.module';
+import { RateLimitModule } from './modules/rate-limit/rate-limit.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule,
+  imports: [DatabaseModule, AuthModule, UsersModule, OrganizationsModule, HealthModule, RedisModule, InvitationsModule, MembershipsModule, SubscriptionsModule, WebhooksModule, UsageModule, ProjectsModule, UsageResetJobModule, RateLimitModule,
     ConfigModule.forRoot({ isGlobal: true }),
     BullModule.forRoot({
       connection: {
