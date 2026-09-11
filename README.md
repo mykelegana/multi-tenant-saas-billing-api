@@ -27,3 +27,7 @@ invitations, and Stripe-powered subscription billing with webhook-driven state s
 - **API Documentation** - Interactive Swagger (OpenAPI) documentation for exploring and testing API endpoints
 - **Containerization** - Docker and Docker Compose setup for PostgreSQL and Redis with environment-based configuration
 - **Production Deployment** - (in progress)
+
+## Architecture Diagram
+
+![Architecture Diagram](docs/images/architecture-diagram.png)
